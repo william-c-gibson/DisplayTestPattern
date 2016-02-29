@@ -1,0 +1,228 @@
+from kivy.app import App 
+from kivy.base import runTouchApp
+from kivy.uix.floatlayout import FloatLayout 
+from kivy.properties import NumericProperty, ReferenceListProperty 
+from kivy.event import EventDispatcher 
+from kivy.uix.boxlayout import BoxLayout 
+from kivy.uix.gridlayout import GridLayout 
+from kivy.uix.widget import Widget
+
+from kivy.clock import Clock
+from kivy.animation import Animation
+from kivy.properties import ListProperty, ObjectProperty, AliasProperty
+from kivy.core.window import Window
+ 
+from kivy.uix.label import Label
+
+from kivy.lang import Builder
+from kivy.uix.scatter import Scatter
+import time
+from random import random
+
+
+Builder.load_string('''
+
+<CombinedLayout>:
+    SparseGridLayout:
+
+    
+    BlackHorizontalRect:
+    BlackVerticalRect:
+      
+            
+
+
+<GridLabel0>:
+    canvas.before:
+        Color:
+            rgb: 1, 0, 0
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<GridLabel1>:
+    canvas.before:
+        Color:
+            rgb: 0, 1, 0
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<GridLabel2>:
+    canvas.before:
+        Color:
+            rgb: 0, 0, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<GridLabel3>:
+    canvas.before:
+        Color:
+            rgb: 1, 1, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<GridLabel4>:
+    canvas.before:
+        Color:
+            rgb: 0, 0, 0
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<BlackHorizontalRect>:
+    
+    size:  20, 20
+  
+    canvas.after:
+        Color:
+            rgba: 0,0,0,1
+        Rectangle:
+            on_parent:
+                if self.pos >= 0:  [(pos.y + i) for i in range(500)]
+           
+            size: 1100,20
+           
+
+<BlackVerticalRect>:
+  
+    size:  20,20
+
+    
+    canvas.after:
+        Color:
+            rgba: 0,0,0,1
+        Rectangle:
+           
+          
+            size: 20, 1000
+
+
+
+    
+''')
+class CombinedLayout(FloatLayout):
+    pass
+
+
+class SparseGridLayout(FloatLayout): 
+    
+ 
+    rows = NumericProperty(1) 
+    columns = NumericProperty(1) 
+    shape = ReferenceListProperty(rows, columns) 
+ 
+ 
+    def do_layout(self, *args): 
+        shape_hint = (1. / self.columns, 1. / self.rows) 
+        for child in self.children: 
+            child.size_hint = shape_hint 
+            if not hasattr(child, 'row'): 
+                child.row = 0 
+            if not hasattr(child, 'column'): 
+                child.column = 0 
+ 
+ 
+            child.pos_hint = {'x': shape_hint[0] * child.row, 
+                              'y': shape_hint[1] * child.column} 
+
+        super(SparseGridLayout, self).do_layout(*args) 
+
+ 
+ 
+class GridEntry(EventDispatcher): 
+    row = NumericProperty(0) 
+    column = NumericProperty(0) 
+ 
+ 
+ 
+ 
+class GridLabel0(Label, GridEntry): 
+    pass 
+ 
+class GridLabel1(Label, GridEntry): 
+    pass 
+
+class GridLabel2(Label, GridEntry): 
+    pass 
+ 
+class GridLabel3(Label, GridEntry): 
+    pass 
+
+class GridLabel4(Label, GridEntry): 
+    pass 
+
+class BlackHorizontalRect(Widget):
+    velocity = ListProperty([0, 2])
+
+    def __init__(self, **kwargs):
+        super(BlackHorizontalRect,self).__init__(**kwargs)
+        Clock.schedule_interval(self.update, 1/60.)
+      
+    def update(self, *args):
+        self.x += self.velocity[0]
+        self.y += self.velocity[1]
+        print("BHT position is ", self.x)
+        if self.x <0 or (self.x + self.width) > Window.width:
+            self.velocity[0] *= -1
+        if self.y <0 or (self.y + self.height) > Window.height:
+            self.velocity[1] *= -1
+
+  
+
+class BlackVerticalRect(Widget):
+    velocity = ListProperty([2, 0])
+
+    def __init__(self, **kwargs):
+        super(BlackVerticalRect,self).__init__(**kwargs)
+        Clock.schedule_interval(self.update, 1/60.)
+        
+    def update(self, *args):
+        self.x += self.velocity[0]
+        self.y += self.velocity[1]
+        print("BVT position is ", self.y)
+        if self.x <0 or (self.x + self.width) > Window.width:
+            self.velocity[0] *= -1
+        if self.y <0 or (self.y + self.height) > Window.height:
+            self.velocity[1] *= -1
+
+class ExampleApp(App): 
+
+    def build(self): 
+        labels = [] 
+        for i in range(5): 
+            for j in range(5): 
+                if (i == 0 and j==2) or (i ==1 and j ==1) or (i == 2 and j ==0):
+                    labels.append(GridLabel0(row=i, column=j)) 
+                if (i == 1 and j == 2) or (i == 2 and j == 1) or (i == 3 and j == 0):
+                    labels.append(GridLabel1(row=i, column=j)) 
+                if (i == 2 and j==2) or (i==3 and j==1) or (i ==4 and j==0):
+                    labels.append(GridLabel2(row=i, column=j))
+                if (i == 3 and j ==2) or (i==4 and j==1) or (i==0 and j==0):
+                    labels.append(GridLabel3(row=i, column=j))
+                if (i == 4 and j==2) or (i==0 and j==1) or (i==1 and j==0):
+                    labels.append(GridLabel4(row=i, column=j))   
+        layout = SparseGridLayout(rows=3, columns=5) 
+        for label in labels: 
+            layout.add_widget(label)
+        c = CombinedLayout()
+        
+        wid1 = BlackVerticalRect()
+        wid2 = BlackHorizontalRect()
+       
+        c.add_widget(layout, index = 1)
+        c.add_widget(wid1)
+        c.add_widget(wid2)
+     
+        
+       
+        
+       
+       
+        return c
+ 
+ 
+if __name__ == '__main__':
+    ExampleApp().run()
