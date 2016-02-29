@@ -1,2 +1,2 @@
 # DisplayTestPattern
-Two black rectangles constantly moving a multi-colored background
+Two black rectangles constantly moving across multi-colored background
